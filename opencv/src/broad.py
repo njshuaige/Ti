@@ -19,8 +19,7 @@ class TriangleDetector:
     def preprocess_image(self):
         def adjust_gamma(image, gamma=1.5):
             invGamma = 1.0 / gamma
-            table = np.array([(i / 255.0) ** invGamma * 255
-                              for i in np.arange(0, 256)]).astype("uint8")
+            table = np.array([(i / 255.0) ** invGamma * 255 for i in np.arange(0, 256)]).astype("uint8")
             return cv2.LUT(image, table)
 
         def apply_clahe(gray_img):
@@ -93,7 +92,7 @@ class KalmanPredictor:
 
     def predict(self):
         prediction = self.kalman.predict()
-        self.predicted = (int(prediction[0]), int(prediction[1]))
+        self.predicted = (int(prediction[0][0]), int(prediction[1][0]))  # ✅ 修复 DeprecationWarning
         return self.predicted
 
 
@@ -157,6 +156,10 @@ def main():
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
 
         elif frame_count == INIT_FRAMES:
+            if not init_triangles:
+                print("[初始化失败] 没有检测到三角形，可能是光照或参数问题")
+                frame_count += 1
+                continue
             bins = {}
             for area, angles in init_triangles:
                 key = tuple(np.round(angles, 1))
@@ -185,6 +188,13 @@ def main():
                     predicted_vertices = offset + np.array(predicted, dtype=np.float32)
                     cv2.polylines(frame, [vertices.astype(np.int32)], True, (0, 255, 0), 2)
                     cv2.polylines(frame, [predicted_vertices.astype(np.int32)], True, (255, 0, 0), 2)
+
+                    # ✅ 三角形顶点编号标记
+                    for i, pt in enumerate(vertices):
+                        pt = tuple(pt.astype(int))
+                        cv2.circle(frame, pt, 6, (0, 0, 255), -1)
+                        cv2.putText(frame, f"{i+1}", (pt[0] + 5, pt[1] - 5),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
                     for i in range(3):
                         pt1 = vertices[i].astype(np.float32)
