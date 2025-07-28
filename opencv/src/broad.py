@@ -7,7 +7,7 @@ logger.remove()
 logger.add(sys.stderr, level="INFO")
 
 
-class TriangleDetector:
+class Triangle_Detector:
     def __init__(self, max_perimeter=99999, min_perimeter=100, min_angle=20):
         self.img = None
         self.max_perimeter = max_perimeter
@@ -112,7 +112,7 @@ def main():
     angle_per_pixel_x = HFOV / frame_width
     angle_per_pixel_y = VFOV / frame_height
 
-    detector = TriangleDetector(min_perimeter=100, min_angle=20)
+    detector = Triangle_Detector(min_perimeter=100, min_angle=20)
     tracker = KalmanPredictor()
 
     INIT_FRAMES = 20
