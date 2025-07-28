@@ -66,7 +66,7 @@ def main():
 
     # 可选：降低曝光值（若支持）
     cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
-    cap.set(cv2.CAP_PROP_EXPOSURE, -6)  # 试试 -4, -6, -8
+    cap.set(cv2.CAP_PROP_EXPOSURE, -8)  # 试试 -4, -6, -8
 
     if not cap.isOpened():
         print("无法打开摄像头")

@@ -116,8 +116,8 @@ def main():
     tracker = KalmanPredictor()
 
     INIT_FRAMES = 20
-    AREA_TOLERANCE = 0.5
-    ANGLE_TOLERANCE = 15
+    AREA_TOLERANCE = 0.7
+    ANGLE_TOLERANCE = 10
 
     init_triangles = []
     template_area = None
@@ -157,8 +157,9 @@ def main():
 
         elif frame_count == INIT_FRAMES:
             if not init_triangles:
-                print("[初始化失败] 没有检测到三角形，可能是光照或参数问题")
-                frame_count += 1
+                print("[初始化失败] 没有检测到三角形，重新初始化...")
+                frame_count = 0
+                init_triangles.clear()
                 continue
             bins = {}
             for area, angles in init_triangles:
@@ -178,18 +179,15 @@ def main():
                 angle_diff = [abs(a - b) for a, b in zip(angles, template_angles)]
                 if abs(area - template_area) / template_area < AREA_TOLERANCE and all(d < ANGLE_TOLERANCE for d in angle_diff):
                     tracker.correct(center[0], center[1])
-                    dx = center[0] - cx
-                    dy = center[1] - cy
-                    yaw = dx * angle_per_pixel_x
-                    pitch = -dy * angle_per_pixel_y
-                    print(f"[三角形中心] x={center[0]}, y={center[1]} → Yaw={yaw:.2f}°, Pitch={pitch:.2f}°")
+                    # 去除 yaw 和 pitch 计算打印，改为打印顶点和中心坐标
+                    print(f"[三角形顶点坐标] {vertices.tolist()}, 中心坐标: {center}")
 
                     offset = vertices.astype(np.float32) - np.array(center, dtype=np.float32)
                     predicted_vertices = offset + np.array(predicted, dtype=np.float32)
                     cv2.polylines(frame, [vertices.astype(np.int32)], True, (0, 255, 0), 2)
                     cv2.polylines(frame, [predicted_vertices.astype(np.int32)], True, (255, 0, 0), 2)
 
-                    # ✅ 三角形顶点编号标记
+                    # 三角形顶点编号标记
                     for i, pt in enumerate(vertices):
                         pt = tuple(pt.astype(int))
                         cv2.circle(frame, pt, 6, (0, 0, 255), -1)
